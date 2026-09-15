@@ -33,7 +33,7 @@
       <source src="./clarity.mp3" type="audio/mpeg" />
       Your browser does not support the audio element.
     </audio>
-    <label for="pauseDelaySeconds">Pause delay (0-30 seconds): </label>
+    <label for="pauseDelaySeconds">Pause delay (seconds): </label>
     <input
       id="pauseDelaySeconds"
       type="number"
@@ -56,7 +56,7 @@
           return 0;
         }
 
-        const clampedValue = Math.min(30, Math.max(0, parsedValue));
+        const clampedValue = Math.max(0, parsedValue);
         pauseDelaySecondsInput.value = clampedValue;
         return clampedValue * 1000;
       };
