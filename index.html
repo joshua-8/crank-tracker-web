@@ -24,6 +24,12 @@
       .controls {
         margin-bottom: 1rem;
       }
+
+      #countdownDisplay {
+        margin: 1rem 0;
+        font-size: 4rem;
+        font-weight: bold;
+      }
     </style>
   </head>
   <body>
@@ -41,12 +47,55 @@
       value="5"
       step="1"
     />
+    <div id="countdownDisplay">00:00</div>
     <button type="button" id="timerButton">PRESS FOR CLARITY</button>
     <script>
       const clarityAudio = document.getElementById("clarityAudio");
       const pauseDelaySecondsInput = document.getElementById("pauseDelaySeconds");
+      const countdownDisplay = document.getElementById("countdownDisplay");
       const timerButton = document.getElementById("timerButton");
       let pauseTimerId = null;
+      let countdownIntervalId = null;
+
+      const formatDuration = (durationMs) => {
+        const totalSeconds = Math.max(0, Math.ceil(durationMs / 1000));
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+      };
+
+      const updateCountdownDisplay = (durationMs) => {
+        countdownDisplay.textContent = formatDuration(durationMs);
+      };
+
+      const clearCountdownInterval = () => {
+        if (countdownIntervalId !== null) {
+          window.clearInterval(countdownIntervalId);
+          countdownIntervalId = null;
+        }
+      };
+
+      const startCountdown = (durationMs) => {
+        clearCountdownInterval();
+        updateCountdownDisplay(durationMs);
+
+        if (durationMs <= 0) {
+          return;
+        }
+
+        const countdownEndTime = Date.now() + durationMs;
+
+        countdownIntervalId = window.setInterval(() => {
+          const remainingMs = countdownEndTime - Date.now();
+          if (remainingMs <= 0) {
+            updateCountdownDisplay(0);
+            clearCountdownInterval();
+            return;
+          }
+
+          updateCountdownDisplay(remainingMs);
+        }, 200);
+      };
 
       const getPauseDelayMs = () => {
         const parsedValue = Number.parseInt(pauseDelaySecondsInput.value, 10);
@@ -66,10 +115,15 @@
           window.clearTimeout(pauseTimerId);
         }
 
+        const pauseDelayMs = getPauseDelayMs();
+        startCountdown(pauseDelayMs);
+
         pauseTimerId = window.setTimeout(() => {
           clarityAudio.pause();
+          updateCountdownDisplay(0);
+          clearCountdownInterval();
           pauseTimerId = null;
-        }, getPauseDelayMs());
+        }, pauseDelayMs);
       });
 
       window.addEventListener("load", () => {
